@@ -7,10 +7,10 @@ date: "2025-07-08"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(readxl)    # read Excel files
-library(dplyr)     # data wrangling
-library(ggplot2)   # visualisation
-library(janitor)   # nice-to-have: cleans column names
+library(readxl)  
+library(dplyr)   
+library(ggplot2)   
+library(janitor)   
 ```
 
 ## R Markdown
@@ -20,22 +20,14 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
-#–> Update this to your actual location if it differs
 file_path <- "D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/2025 County Health Rankings Virginia Data - v3.xlsx"
-# A quick peek at the available tabs
+
 excel_sheets(file_path)
-#> [1] "Select Measure Data"           "Select Measure Sources & Years"
-#> [3] "Additional Measure Data"       "Addtl Measure Sources & Years"
-#> [5] "Health Groups"
-############################################################
-# 2.  READ THE TAB YOU NEED
-#    • “Select Measure Data”  → core measures
-#    • “Additional Measure Data” → life expectancy, etc.
-############################################################
+
 measure_df <- read_excel(file_path,
                          sheet = "Select Measure Data",
-                         .name_repair = "unique") |>           # avoid dup col names
-              clean_names()                                   # snake_case columns
+                         .name_repair = "unique") |>           
+              clean_names()                                   
 addl_df   <- read_excel(file_path,
                          sheet = "Additional Measure Data",
                          .name_repair = "unique") |>
@@ -47,13 +39,9 @@ addl_df   <- read_excel(file_path,
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-# ── 2. keep only county rows (the first row is the state aggregate) ──────────
 addl_df <- addl_df %>% 
-  filter(!is.na(county) & county != "NA")   # drop statewide summary row
-# ── 3. quick sanity check ────────────────────────────────────────────────────
+  filter(!is.na(county) & county != "NA")  
 summary(addl_df$life_expectancy)
-# hist(addl_df$life_expectancy)  # base R check
-# ── 4. histogram with ggplot2 ────────────────────────────────────────────────
 ggplot(addl_df, aes(x = life_expectancy)) +
   geom_histogram(binwidth = 1, fill = "steelblue", colour = "white") +
   labs(title = "Distribution of Life Expectancy Across Virginia Counties (2025)",
