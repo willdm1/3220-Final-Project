@@ -1,0 +1,148 @@
+---
+title: "Summer Olympics- Sample Paper" 
+author: "Prof V"
+fontsize: 12pt
+geometry: margin=1in
+urlcolor: black
+output: pdf_document
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, comment=NA, warnings=FALSE,message=FALSE)
+```
+
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## Use this chunk for reading in packages.
+## Use this chunk for reading in the data, combining the data, and any other major data cleaning that is not relevant to show.
+## Remove the ## before all code.
+olympics2024<-read.csv("https://raw.githubusercontent.com/kvaranyak4/STAT3220/main/olympicsclean2024.csv")
+library(car)
+library(Hmisc)
+library(car)
+library(olsrr)
+```
+
+\begin{center}
+
+\includegraphics{/Users/kristavaranyak/Downloads/GOLDYulo.jpg}
+
+\end{center}
+
+\newpage 
+
+## Introduction
+Winning big at the Olympics brings national prestige and an increased presence on the world stage for a country. This leads to a country to increase its image and popularity, in turn could cause increases in tourism a potential bid to host the Olympics, and other strong political relationship. Therefore, it may be useful to predict how many medals a country would win. What factors might impact a country's success?
+
+Filipino gymnast, Carlos Yulo, made headlines as the first male to win an Olympic gold medal in the history of the Philippines. But he continued to grow in popularity as his earnings from the country caught attention. He earned a cash prize of 10 million Philippine pesos (\$172,519 USD), a brand new condo valued at over \$400,000 USD, a lifetime supply of ramen and other incentives. In comparison, the US awards its gold medalists a "measly" \$38,000 for winning the gold. While governments in Great Britain and Sweden do not offer any direct cash incentives. In this unit we will explore data from the 2024 Paris Olympics, how cash incentives and national factors impact medal counts for each country. We will explore the countries with the top 24 medal counts.
+
+- Do countries with higher gold cash incentives have a higher weighted medal counts?
+- Do countries with higher female labor force have a higher weighted medal counts?
+- Do countries that are furhter from Paris have a lower weighted medal counts?
+
+## Data Summary
+
+### Data Sources
+The data were compiled from several sources including ESPN, Olympic International Committee, and World Bank. Some values were cross references on Wikipedia. We have no reason to question the credibility of these sources.
+
+### Exploratory Data Analysis
+
+```{r, echo=FALSE}
+## Use this code  to include the relevant plots from EDA
+## This should NOT be a dump of all of your plots and outputs.
+## Refer to the Rmarkdown guide for sizing information on your plots
+
+par(mfrow=c(2,3),pin=c(1,1),mar=c(7.1,4.1,3,1))
+hist(olympics2024$WeightedTotal, xlab="Weighted Medal Count", main="Histogram of Weighted Medal Count") 
+# Use a loop to make a lot of plots at once
+
+  plot(olympics2024[,"GoldPrize"], olympics2024$WeightedTotal,xlab="Gold Prize",ylab="Weighted Total Medal Count")
+plot(olympics2024[,"WomanLaborForce"], olympics2024$WeightedTotal,xlab="Woman Labor Force",ylab="Weighted Total Medal Count")
+plot(olympics2024[,"Distance"], olympics2024$WeightedTotal,xlab="Distance",ylab="Weighted Total Medal Count")
+plot(olympics2024[,"GDP"], olympics2024$WeightedTotal,xlab="GDP",ylab="Weighted Total Medal Count")
+
+
+
+
+```
+
+### EDA Summary
+
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## Use this code chunk can be used to execute any functions or summaries 
+## that will not be included in your output such as correlations or 5 number summaries
+
+round(cor(olympics2024[7:18],olympics2024$WeightedTotal),3)
+olympmod<-lm(WeightedTotal~.-Country-Total-TGold-TSilver-TBronze-YOTotal,data=olympics2024)
+vif(olympmod)
+ols_step_both_p(olympmod,p_ent=0.2,p_rem=0.2,details=F)
+```
+Our research variables Gold Prize, Woman Labor Force, and Distance did not have a strong linear relationships with correlations of 0.352, 0.209, and 0.217 respectively. However, GDP has a surprisingly strong relationship with a correlation of 0.987. Additionally, multicollienrty was a concern with several variables with high VIFs. After performing stepwise with entry and stay significance of 0.20, the variables GDP, YOSilver, and Woman Labor Force were determined to be an important set of predictors. Therefore, we will begin model building with those variables.
+
+## Methods and Analysis
+
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## This code chunk can be used to execute any functions or summaries that will not be included in your output
+olympmod1<-lm(WeightedTotal~GDP+YOSilver+WomanLaborForce,data=olympics2024)
+summary(olympmod1)
+vif(olympmod1)
+```
+
+After EDA, we fit the model with GDP, YOSilver, and Woman Labor Force. With a pvalue less than 0.05, the overall model was significant. Then we evaluated "Woman Labor Force" with a t test. With a pvalue of 0.057, this does not meet our significance level. However there is moderate evidence this is an important predictor so we will keep it in the model. 
+
+... continue assessing and adding qual, int...
+
+... residual analysis ...
+
+## Results
+
+Our final model is .... the ways we assess it are statistically....
+
+## Conclusions
+
+Practically our model is .... the way we use it...
+
+\newpage
+
+## Appendix A: Data Dictionary
+
+|Variable Name|Abbreviated Name|Description|
+|:----:|:----:|:----:|
+| Country| Country |  The team name as identified by the country. |
+| WeightedTotal| Weighted Total |  Weighted medal count from Paris 2024 (4 points for each gold, 2 for each silver, 1 for bronze) |
+| WomanLaborForce| Woman Labor Force |  Percentage of woman working in the country in 2023 |
+
+\newpage
+## Appendix B: Data Rows
+```{r, echo=FALSE}
+# Use head() function to output first several rows
+head(olympics2024)
+```
+
+\newpage
+## Appendix C: Final Model Output and Plots
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## This code chunk can be used to execute any functions or summaries that will not be included in your output
+```
+
+```{r, echo=FALSE}
+## Use this section to output the summary of your final model
+## Include the relevant plots from assumptions and your additional techniques
+## This should NOT be a dump of all of your plots and outputs.
+## Refer to the Rmarkdown guide for sizing information on your plots
+olympmod1<-lm(WeightedTotal~GDP+YOSilver+WomanLaborForce,data=olympics2024)
+summary(olympmod1)
+residualPlots(olympmod1,test=F)
+influencePlot(olympmod1)
+```
+
+\newpage
+## Appendix D: References
+
+### Background
+
+### Data Sources
+
+### Additional Help
