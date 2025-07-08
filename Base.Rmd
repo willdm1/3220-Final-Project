@@ -36,7 +36,7 @@ measure_df <- read_excel(file_path,
                          sheet = "Select Measure Data",
                          .name_repair = "unique") |>           # avoid dup col names
               clean_names()                                   # snake_case columns
-addtl_df   <- read_excel(file_path,
+addl_df   <- read_excel(file_path,
                          sheet = "Additional Measure Data",
                          .name_repair = "unique") |>
               clean_names()
@@ -48,13 +48,13 @@ You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
 # ── 2. keep only county rows (the first row is the state aggregate) ──────────
-addtl_df <- addtl_df %>% 
-  filter(!is.na(county) & county != "")   # drop statewide summary row
+addl_df <- addl_df %>% 
+  filter(!is.na(county) & county != "NA")   # drop statewide summary row
 # ── 3. quick sanity check ────────────────────────────────────────────────────
-summary(addtl_df$life_expectancy)
+summary(addl_df$life_expectancy)
 # hist(addl_df$life_expectancy)  # base R check
 # ── 4. histogram with ggplot2 ────────────────────────────────────────────────
-ggplot(addtl_df, aes(x = life_expectancy)) +
+ggplot(addl_df, aes(x = life_expectancy)) +
   geom_histogram(binwidth = 1, fill = "steelblue", colour = "white") +
   labs(title = "Distribution of Life Expectancy Across Virginia Counties (2025)",
        x     = "Life Expectancy (years)",
