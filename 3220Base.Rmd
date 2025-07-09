@@ -51,6 +51,8 @@ full_df <- addl_df %>%
                           labels = c("0–25 %", "26–50 %", "51–75 %", "76–100 %"),
                           right = TRUE, ordered_result = TRUE)
   )
+
+head(full_df)
 ```
 
 # 1. Histogram of Life Expectancy Counts (Counties)
@@ -70,6 +72,7 @@ ggplot(addl_df, aes(x = life_expectancy)) +
 # 2. Scatterplot: Life Expectancy vs. Median Income (+ LOESS)
 
 ```{r pressure, echo=FALSE}
+summary(full_df$median_household_income)
 ggplot(full_df, aes(x = median_household_income, y = life_expectancy)) +
   geom_point(colour = "steelblue", alpha = 0.8) +
   geom_smooth(method = "loess", se = FALSE, colour = "darkred") +
@@ -83,6 +86,7 @@ ggplot(full_df, aes(x = median_household_income, y = life_expectancy)) +
 # 3. Scatterplot: Life Expectancy vs. Primary-Care Physician Ratio
 
 ```{r pressure, echo=FALSE}
+summary(full_df$primary_care_physicians_ratio)
 ggplot(full_df, aes(x = primary_care_physicians_ratio, y = life_expectancy)) +
   geom_point(colour = "forestgreen", alpha = 0.8) +
   geom_smooth(method = "loess", se = FALSE, colour = "black") +
@@ -96,6 +100,7 @@ ggplot(full_df, aes(x = primary_care_physicians_ratio, y = life_expectancy)) +
 # 4. Scatterplot: Life Expectancy vs. Adult Obesity (%)
 
 ```{r pressure, echo=FALSE}
+summary(full_df$percent_adults_with_obesity)
 ggplot(full_df, aes(x = percent_adults_with_obesity, y = life_expectancy)) +
   geom_point(colour = "tomato", alpha = 0.8) +
   geom_smooth(method = "loess", se = FALSE, colour = "black") +
@@ -108,6 +113,7 @@ ggplot(full_df, aes(x = percent_adults_with_obesity, y = life_expectancy)) +
 # 5. Faceted scatter: Life Expectancy ~ Adult Obesity, coloured by Exercise-Access Tertile
 
 ```{r pressure, echo=FALSE}
+summary(full_df$percent_adults_with_obesity)
 ggplot(full_df, aes(x = percent_adults_with_obesity, y = life_expectancy,
                     colour = exercise_tertile)) +
   geom_point(size = 2, alpha = 0.8) +
@@ -122,7 +128,7 @@ ggplot(full_df, aes(x = percent_adults_with_obesity, y = life_expectancy,
 # 6. Boxplot: Life Expectancy by Rural
 
 ```{r pressure, echo=FALSE}
-library(ggplot2)
+summary(full_df$rural_band)
 rural_cols <- c("0–25 %"  = "#1f78b4",
                 "26–50 %" = "#33a02c",
                 "51–75 %" = "#a6d854",
@@ -138,6 +144,21 @@ ggplot(full_df,
        x = "",
        y = "Life Expectancy (years)") +
   theme_minimal()
+
+band_stats <- full_df %>%                       
+  group_by(rural_band) %>%                   
+  summarise(
+    n      = n(),                               
+    min    = min(life_expectancy, na.rm = TRUE),
+    Q1     = quantile(life_expectancy, .25, na.rm = TRUE),
+    median = median(life_expectancy, na.rm = TRUE),
+    mean   = mean(life_expectancy, na.rm = TRUE),
+    Q3     = quantile(life_expectancy, .75, na.rm = TRUE),
+    max    = max(life_expectancy, na.rm = TRUE),
+    sd     = sd(life_expectancy, na.rm = TRUE)
+  )
+
+band_stats
 ```
 
 # 7. Correlation Heat-map of Key Quantitative Predictors
@@ -159,7 +180,9 @@ corr_long <- corr_mat %>%
   as.data.frame() %>% 
   rownames_to_column("Var1") %>%        
   pivot_longer(-Var1, names_to = "Var2", values_to = "value")
- 
+
+summary(corr_long) 
+
 ggplot(corr_long, aes(Var1, Var2, fill = value)) +  
   geom_tile(colour = "white") +
   geom_text(aes(label = sprintf("%.2f", value)), size = 3) +
