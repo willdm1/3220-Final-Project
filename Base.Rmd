@@ -7,53 +7,63 @@ date: "2025-07-08"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-library(readxl)    # read Excel files
-library(dplyr)     # data wrangling
-library(ggplot2)   # visualisation
-library(janitor)   # nice-to-have: cleans column names
+library(readxl)  
+library(dplyr)   
+library(ggplot2)   
+library(janitor) 
+library(scales)
+library(tidyr)
+library(reshape)
+library(tibble)
 ```
 
-## R Markdown
-
+## 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
+# 0a. Load in Data
+
 ```{r cars}
-#–> Update this to your actual location if it differs
 file_path <- "D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/2025 County Health Rankings Virginia Data - v3.xlsx"
-# A quick peek at the available tabs
+
 excel_sheets(file_path)
-#> [1] "Select Measure Data"           "Select Measure Sources & Years"
-#> [3] "Additional Measure Data"       "Addtl Measure Sources & Years"
-#> [5] "Health Groups"
-############################################################
-# 2.  READ THE TAB YOU NEED
-#    • “Select Measure Data”  → core measures
-#    • “Additional Measure Data” → life expectancy, etc.
-############################################################
-measure_df <- read_excel(file_path,
-                         sheet = "Select Measure Data",
-                         .name_repair = "unique") |>           # avoid dup col names
-              clean_names()                                   # snake_case columns
-addl_df   <- read_excel(file_path,
-                         sheet = "Additional Measure Data",
-                         .name_repair = "unique") |>
-              clean_names()
+
+addl_df   <- read_excel(file_path, sheet = "Additional Measure Data") %>% clean_names()
+measure_df <- read_excel(file_path, sheet = "Select Measure Data")    %>% clean_names()
 ```
 
-## Including Plots
+# 0b. Combine the two sheets and engineer helper variables
 
-You can also embed plots, for example:
+```{r}
+full_df <- addl_df %>% 
+  inner_join(
+      measure_df %>% 
+        select(fips,
+               percent_with_access_to_exercise_opportunities,
+               everything()),
+      by = "fips"
+  ) %>% 
+  mutate(
+      exercise_tertile = ntile(percent_with_access_to_exercise_opportunities, 3) %>% 
+                         factor(levels = 1:3, labels = c("Low","Mid","High"))
+  ) %>% 
+  mutate(
+    primary_care_physicians_ratio =
+           as.numeric(sub(":1$", "", primary_care_physicians_ratio))) %>% 
+
+  mutate(rural_band = cut(percent_rural,
+                          breaks = c(-Inf, 25, 50, 75, 100),
+                          labels = c("0–25 %", "26–50 %", "51–75 %", "76–100 %"),
+                          right = TRUE, ordered_result = TRUE))
+```
+
+## 1. Histogram of Life Expectancy Counts (# of Counties)
 
 ```{r pressure, echo=FALSE}
-# ── 2. keep only county rows (the first row is the state aggregate) ──────────
 addl_df <- addl_df %>% 
-  filter(!is.na(county) & county != "NA")   # drop statewide summary row
-# ── 3. quick sanity check ────────────────────────────────────────────────────
+  filter(!is.na(county) & county != "NA")  
 summary(addl_df$life_expectancy)
-# hist(addl_df$life_expectancy)  # base R check
-# ── 4. histogram with ggplot2 ────────────────────────────────────────────────
 ggplot(addl_df, aes(x = life_expectancy)) +
   geom_histogram(binwidth = 1, fill = "steelblue", colour = "white") +
   labs(title = "Distribution of Life Expectancy Across Virginia Counties (2025)",
@@ -63,8 +73,102 @@ ggplot(addl_df, aes(x = life_expectancy)) +
 
 ```
 
-```{r}
+# 2. Scatterplot: Life Expectancy vs. Median Income (+ LOESS)
 
+```{r}
+ggplot(full_df, aes(x = median_household_income, y = life_expectancy)) +
+  geom_point(colour = "steelblue", alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "darkred") +
+  scale_x_continuous(labels = dollar_format()) +
+  labs(title = "Life Expectancy vs. Median Household Income",
+       x = "Median Household Income (USD)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# 3. Scatterplot: Life Expectancy vs. Primary-Care Physician Ratio
+
+```{r}
+ggplot(full_df, aes(x = primary_care_physicians_ratio, y = life_expectancy)) +
+  geom_point(colour = "forestgreen", alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "black") +
+  scale_x_reverse() +
+  labs(title = "Life Expectancy vs. Primary-Care Physician Ratio",
+       x = "Population per Primary-Care Physician (higher = fewer physicians)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+```
+
+
+# 4. Scatterplot: Life Expectancy vs. Adult Obesity (%)
+
+```{r}
+ggplot(full_df, aes(x = percent_adults_with_obesity, y = life_expectancy)) +
+  geom_point(colour = "tomato", alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "black") +
+  labs(title = "Life Expectancy vs. Adult Obesity",
+       x = "Adult Obesity (%)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+```
+
+5. Faceted scatter: Life Expectancy ~ Adult Obesity, coloured by Exercise-Access Tertile
+
+```{r}
+ggplot(full_df, aes(x = percent_adults_with_obesity, y = life_expectancy,
+                    colour = exercise_tertile)) +
+  geom_point(size = 2, alpha = 0.8) +
+  scale_colour_brewer(palette = "Dark2", name = "Exercise Access") +
+  facet_wrap(~ exercise_tertile, nrow = 1) +
+  labs(title = "Life Expectancy vs. Obesity by Exercise-Access Tertile",
+       x = "Adult Obesity (%)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+```
+
+6. Boxplot: Life Expectancy by Rural
+
+```{r}
+library(ggplot2)
+
+rural_cols <- c("0–25 %"  = "#1f78b4",
+                "26–50 %" = "#33a02c",
+                "51–75 %" = "#a6d854",
+                "76–100 %"= "#66c2a5")
+
+ggplot(full_df,
+       aes(x = rural_band,
+           y = life_expectancy,
+           fill = rural_band)) +
+  geom_boxplot(alpha = 0.7, colour = "grey30") +
+  scale_fill_manual(values = rural_cols, guide = "none") +   
+  labs(title = "Life Expectancy by Rural Status",
+       x = "",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+```
+
+7. Correlation Heat-map of Key Quantitative Predictors
+
+```{r}
+corr_long <- corr_mat %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Var1") %>%        
+  pivot_longer(-Var1, names_to = "Var2", values_to = "value")
+
+ggplot(corr_long, aes(Var1, Var2, fill = value)) +  
+  geom_tile(colour = "white") +
+  geom_text(aes(label = sprintf("%.2f", value)), size = 3) +
+  scale_fill_gradient2(low = "firebrick",
+                       mid = "white",
+                       high = "steelblue",
+                       midpoint = 0,
+                       limits = c(-1, 1),
+                       name = "Pearson r") +
+  labs(title = "Correlation Heat-map of Key Quantitative Predictors",
+       x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
