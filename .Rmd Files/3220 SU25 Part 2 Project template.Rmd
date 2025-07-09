@@ -1,0 +1,256 @@
+---
+title: "Insert heading" 
+author: "Team REGAN"
+fontsize: 12pt
+geometry: margin=1in
+urlcolor: black
+output: pdf_document
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, comment=NA, warnings=FALSE,message=FALSE)
+
+```
+
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+library(readxl)  
+library(dplyr)   
+library(ggplot2)   
+library(janitor) 
+library(scales)
+library(tidyr)
+library(reshape)
+library(tibble)
+library(broom)
+library(fs)
+library(e1071)
+library(readr) 
+
+file_path <- "D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/Data/2025 County Health Rankings Virginia Data - v3.xlsx"
+
+excel_sheets(file_path)
+
+addl_df   <- read_excel(file_path, sheet = "Additional Measure Data") %>% clean_names()
+
+measure_df <- read_excel(file_path, sheet = "Select Measure Data")    %>% clean_names()
+
+full_df <- addl_df %>% 
+  inner_join(
+      measure_df %>% 
+        select(fips,
+               percent_with_access_to_exercise_opportunities,
+               everything()),
+      by = "fips"
+  ) %>% 
+  mutate(
+      exercise_tertile = ntile(percent_with_access_to_exercise_opportunities, 3) %>% 
+                         factor(levels = 1:3, labels = c("Low","Mid","High"))
+  ) %>% 
+  mutate(
+      primary_care_physicians_ratio =
+           as.numeric(sub(":1$", "", primary_care_physicians_ratio))
+  ) %>% 
+  mutate(rural_band = cut(percent_rural,
+                          breaks = c(-Inf, 25, 50, 75, 100),
+                          labels = c("0–25 %", "26–50 %", "51–75 %", "76–100 %"),
+                          right = TRUE, ordered_result = TRUE)
+  )
+
+```
+
+
+\begin{center}
+
+\includegraphics[width=\textwidth]%
+  {D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/Graphics/Title_Page/TitlePageImage.png}
+  
+\end{center}
+
+\newpage 
+
+## Introduction
+
+## Data Summary
+
+### Data Sources
+
+This analysis is based on the 2025 Virginia extract from the *County Health Rankings & Roadmaps program*, a collaborative effort between the University of Wisconsin Population Health Institute and the Robert Wood Johnson Foundation that gathers county-level health indicators nationwide each year. Before harmonizing the series to a single 2025 reference year, the institute gathers each metric directly from approved federal sources, including the Bureau of Labor Statistics, the American Community Survey, and the CDC WONDER database.
+
+For this study, the population is the complete set of 133 Virginia counties and independent cities. Two companion tables provided by the Rankings, Select Measure Data and Additional Measure Data, contain (i) core health outcomes and (ii) socioeconomic and health-behavior covariates. These tables were combined on each county’s five-digit FIPS code to create a single cross-sectional data frame. A continuous response variable—life expectancy at birth (years)—was retained exactly as reported, ensuring comparability with CDC methodology.
+
+Several small, logically motivated changes were necessary. The ratio of primary care physicians was provided as a text string, such as "2,210:1." To ensure that lower figures indicate increased provider availability, it was transformed to a straightforward numerical count of residents per physician. To draw attention to non-linear gradients in built-environment resources, the percentage of people with access to exercise opportunities was recoded into an ordered three-level factor (Low, Mid, and High). Ultimately, the rural population percentage was divided into four equal-width groups, referred to as rural bands: 0–25%, 26–50%, 51–75%, and 76–100%. This discretization facilitates the understanding of regional differences while maintaining a monotonic ordering. After removing occasional entries with missing outcome values and one jurisdiction without a county name, 132 observations were included in the study sample. 
+
+The County Health Rankings have a high level of credibility, as they are frequently referenced in peer-reviewed health services research and utilize open documentation of data provenance and imputation procedures. However, three cautions are worth mentioning. First, particular data show suppressed numbers for a limited number of counties, which can contribute to the uncertainty. Second, there is no set time for retrieval because several focus areas of data are gathered in different years. Lastly, measurements are obtained from a wide range of reliable sources, each with its own unique data collection techniques, and then compiled into sheets. These restrictions will be reviewed when evaluating model findings; however, they do not compromise the dataset's overall integrity.
+
+### Exploratory Data Analysis
+
+```{r, echo=FALSE}
+# 1. Histogram of Life Expectancy Counts (Counties)
+addl_df <- addl_df %>% 
+  filter(!is.na(county), county != "NA")    
+
+p_hist <- ggplot(addl_df, aes(x = life_expectancy)) +
+  geom_histogram(binwidth = 1,
+                 fill     = "steelblue",
+                 colour   = "white") +
+  labs(title = "Distribution of Life Expectancy Across Virginia Counties (2025)",
+       x     = "Life Expectancy (years)",
+       y     = "Number of Counties") +
+  theme_minimal()
+print(p_hist)
+
+# 2. Scatterplot: Life Expectancy vs. Median Income (+ LOESS)
+p_scatter <- ggplot(full_df,
+                    aes(x = median_household_income,
+                        y = life_expectancy)) +
+  geom_point(colour = "steelblue", alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "darkred") +
+  scale_x_continuous(labels = dollar_format()) +
+  labs(title = "Life Expectancy vs. Median Household Income",
+       x = "Median Household Income (USD)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+print(p_scatter)
+
+# 3. Scatterplot: Life Expectancy vs. Primary-Care Physician Ratio
+p_phys <- ggplot(full_df,
+                 aes(x = primary_care_physicians_ratio,
+                     y = life_expectancy)) +
+  geom_point(colour = "forestgreen", alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "black") +
+  scale_x_reverse() +
+  labs(title = "Life Expectancy vs. Primary-Care Physician Ratio",
+       x = "Population per Primary-Care Physician (higher = fewer physicians)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+print(p_phys)
+
+# 4. Scatterplot: Life Expectancy vs. Adult Obesity (%)
+p_obesity <- ggplot(full_df,
+                    aes(x = percent_adults_with_obesity,
+                        y = life_expectancy)) +
+  geom_point(colour = "tomato", alpha = 0.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "black") +
+  labs(title = "Life Expectancy vs. Adult Obesity",
+       x = "Adult Obesity (%)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+print(p_obesity)
+
+# 5. Faceted scatter: Life Expectancy ~ Adult Obesity, coloured by Exercise-Access Tertile
+p_exercise <- full_df %>% 
+  filter(!is.na(exercise_tertile)) %>%         
+  ggplot(aes(x = percent_adults_with_obesity,
+             y = life_expectancy,
+             colour = exercise_tertile)) +
+  geom_point(size = 2, alpha = 0.8) +
+  scale_colour_brewer(palette = "Dark2",
+                      name = "Exercise Access",
+                      na.translate = FALSE) +      
+  facet_wrap(~ exercise_tertile, nrow = 1, drop = TRUE) +
+  labs(title = "Life Expectancy vs. Obesity by Exercise-Access Tertile",
+       x = "Adult Obesity (%)",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+print(p_exercise)
+
+# 6. Boxplot: Life Expectancy by Rural
+df_rural <- full_df %>% 
+  filter(!is.na(rural_band))
+
+rural_cols <- c("0–25 %"  = "#1f78b4",
+                "26–50 %" = "#33a02c",
+                "51–75 %" = "#a6d854",
+                "76–100 %"= "#66c2a5")
+
+p_rural <- ggplot(df_rural,
+                  aes(x = rural_band,
+                      y = life_expectancy,
+                      fill = rural_band)) +
+  geom_boxplot(alpha = 0.7, colour = "grey30") +
+  scale_fill_manual(values = rural_cols, guide = "none") +
+  labs(title = "Life Expectancy by Rural Status",
+       x = "",
+       y = "Life Expectancy (years)") +
+  theme_minimal()
+print(p_rural)
+
+# 7. Correlation Heat-map of Key Quantitative Predictors
+num_vars <- full_df %>% 
+  select(life_expectancy,
+         median_household_income,
+         percent_adults_with_obesity,
+         primary_care_physicians_ratio,
+         age_adjusted_death_rate,
+         income_ratio,
+         percent_with_access_to_exercise_opportunities) %>% 
+  drop_na()
+
+corr_mat  <- round(cor(num_vars), 2)
+
+corr_long <- corr_mat %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Var1") %>%        
+  pivot_longer(-Var1, names_to = "Var2", values_to = "Pearson_r") %>% 
+  arrange(Var1, Var2)
+
+p_corr <- ggplot(corr_long, aes(Var1, Var2, fill = Pearson_r)) +  
+  geom_tile(colour = "white") +
+  geom_text(aes(label = sprintf("%.2f", Pearson_r)), size = 3) +
+  scale_fill_gradient2(low = "firebrick", mid = "white", high = "steelblue",
+                       midpoint = 0, limits = c(-1, 1), name = "Pearson r") +
+  labs(title = "Correlation Heat-map of Key Quantitative Predictors",
+       x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+print(p_corr)
+
+```
+
+### EDA Summary
+
+## Methods and Analysis
+
+## Results
+
+## Conclusions
+
+\newpage
+
+## Appendix A: Data Dictionary
+
+|Variable Name|Abbreviated Name|Description|
+|:----:|:----:|:----:|
+|  |  |   |
+
+\newpage
+## Appendix B: Data Rows
+```{r, echo=FALSE}
+# Use head() function to output first several rows
+
+```
+
+\newpage
+## Appendix C: Final Model Output and Plots
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## This code chunk can be used to execute any functions or summaries that will not be included in your output
+```
+
+```{r, echo=FALSE}
+## Use this section to output the summary of your final model
+## Include the relevant plots from assumptions and your additional techniques
+## This should NOT be a dump of all of your plots and outputs.
+## Refer to the Rmarkdown guide for sizing information on your plots
+```
+
+\newpage
+## Appendix D: References
+
+### Background
+
+### Data Sources
+
+### Additional Help

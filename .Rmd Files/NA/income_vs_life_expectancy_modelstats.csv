@@ -1,0 +1,5 @@
+metric,value
+pearson_correlation,0.7513603332443973
+loess_equiv_params,5.099386409144586
+loess_resid_se,2.3274366919091554
+loess_trace_hat,5.587062793374494
