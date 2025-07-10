@@ -1,0 +1,339 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+\documentclass[
+  12pt,
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Virginia's Longevity Divide: Income, Obesity, and Exercise Access Across Counties},
+  pdfauthor={Team REGAN},
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={black},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Virginia's Longevity Divide: Income, Obesity, and Exercise Access
+Across Counties}
+\author{Team REGAN}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+
+\includegraphics[width=\textwidth]%
+  {D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/Graphics/Title_Page/TitlePageImage.png}
+  
+\end{center}
+
+\newpage
+
+\subsection{Introduction}\label{introduction}
+
+Although life expectancy is often regarded as a concise indicator of a
+community's overall well-being, notable disparities still exist even
+within a single state. Virginia's 133 counties and independent cities
+have an average life expectancy of just over seventy-seven years,
+according to the 2025 County Health Rankings report, highlighting
+disparities in the state's progress toward public health objectives
+(County Health Rankings \& Roadmaps, 2025). Three recurrent factors that
+influence longevity are household economic resources, the burden of
+chronic diseases (obesity), and the characteristics of local
+environments (such as rural versus urban areas), according to decades of
+epidemiological research, including the Centers for Disease Control and
+Prevention's findings on social determinants of health (Hacker, 2022)
+and the World Health Organization's analyses of obesity-related
+mortality (WHO, 2025). Understanding how these factors manifest at the
+county level in Virginia can guide targeted interventions and equitable
+allocation of resources.
+
+The overarching question guiding this study is:
+
+\emph{Which socioeconomic, health-behavior, and environmental factors
+best explain the variation in 2025 life expectancy across Virginia's
+counties and independent cities?}
+
+Drawing on publicly available data from the County Health Rankings
+portal, we assembled a dataset in which each row represents a single
+jurisdiction, and the outcome of interest is the average life expectancy
+in years.
+
+Three specific research questions are presented to focus the general
+investigation. First, \emph{is the average life expectancy longer in
+jurisdictions with greater median household incomes?} This tackles the
+quantifiable relationship that previous national studies have proposed
+between longevity and economic prosperity. Second, \emph{is life
+expectancy lower in counties with the highest tertile of adult obesity
+rates than in those with the lowest tertile?} This investigates the
+relationship between mortality risk and a quantifiably modifiable health
+behavior variable. Third, \emph{is there a difference in mean life
+expectancy between Virginia's primarily rural and urban jurisdictions?}
+This question investigates whether geographic context alone confers a
+longevity advantage or disadvantage by contrasting a qualitative
+classification of place.
+
+\subsection{Data Summary}\label{data-summary}
+
+\subsubsection{Data Sources}\label{data-sources}
+
+This analysis is based on the 2025 Virginia extract from the
+\emph{County Health Rankings \& Roadmaps program}, a collaborative
+effort between the University of Wisconsin Population Health Institute
+and the Robert Wood Johnson Foundation that gathers county-level health
+indicators nationwide each year. Before harmonizing the series to a
+single 2025 reference year, the institute gathers each metric directly
+from approved federal sources, including the Bureau of Labor Statistics,
+the American Community Survey, and the CDC WONDER database.
+
+For this study, the population is the complete set of 133 Virginia
+counties and independent cities. Two companion tables provided by the
+Rankings, Select Measure Data and Additional Measure Data, contain (i)
+core health outcomes and (ii) socioeconomic and health-behavior
+covariates. These tables were combined on each county's five-digit FIPS
+code to create a single cross-sectional data frame. A continuous
+response variable---life expectancy at birth (years)---was retained
+exactly as reported, ensuring comparability with CDC methodology.
+
+Several small, logically motivated changes were necessary. The ratio of
+primary care physicians was provided as a text string, such as
+``2,210:1.'' To ensure that lower figures indicate increased provider
+availability, it was transformed to a straightforward numerical count of
+residents per physician and then split into 5 bins ``\textless=1k'',
+``1-2k'', ``2-3k'', ``3-5k'', ``\textgreater=5k''. To draw attention to
+non-linear gradients in built-environment resources, the percentage of
+people with access to exercise opportunities was recoded into an ordered
+three-level factor (Low, Mid, and High). Ultimately, the rural
+population percentage was divided into four equal-width groups, referred
+to as rural bands: 0--25\%, 26--50\%, 51--75\%, and 76--100\%. This
+discretization facilitates the understanding of regional differences
+while maintaining a monotonic ordering. After removing occasional
+entries with missing outcome values and one jurisdiction without a
+county name, 132 observations were included in the study sample.
+
+The County Health Rankings have a high level of credibility, as they are
+frequently referenced in peer-reviewed health services research and
+utilize open documentation of data provenance and imputation procedures.
+However, three cautions are worth mentioning. First, particular data
+show suppressed numbers for a limited number of counties, which can
+contribute to the uncertainty. Second, there is no set time for
+retrieval because several focus areas of data are gathered in different
+years. Lastly, measurements are obtained from a wide range of reliable
+sources, each with its own unique data collection techniques, and then
+compiled into sheets. These restrictions will be reviewed when
+evaluating model findings; however, they do not compromise the dataset's
+overall integrity.
+
+\subsubsection{Exploratory Data
+Analysis}\label{exploratory-data-analysis}
+
+\begin{verbatim}
+Warning: Removed 1 row containing non-finite outside the scale range
+(`stat_bin()`).
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-1.pdf}}
+
+\begin{verbatim}
+Warning: Removed 1 row containing non-finite outside the scale range
+(`stat_smooth()`).
+\end{verbatim}
+
+\begin{verbatim}
+Warning: Removed 1 row containing missing values or values outside the scale range
+(`geom_point()`).
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-2.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-3.pdf}}
+
+\begin{verbatim}
+Warning: Removed 1 row containing non-finite outside the scale range (`stat_smooth()`).
+Removed 1 row containing missing values or values outside the scale range
+(`geom_point()`).
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-4.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-5.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-6.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-2-7.pdf}}
+
+\subsubsection{EDA Summary}\label{eda-summary}
+
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-3-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-3-2.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{UPDATED_STAT3220_Report_Template_files/figure-latex/unnamed-chunk-3-3.pdf}}
+The response variable, life expectancy at birth, has a mean of 75.15
+years, a standard deviation of only 3.89 years, and a bell-shaped
+distribution that is almost symmetric with a slight skew (--0.04). The
+variable fulfills the normality and homoscedasticity assumptions
+typically required for multiple linear regression, as it spans more than
+twenty-four years (64.3--88.9); however, the majority of counties
+cluster firmly between 73 and 78 years. As a result, no transformation
+seems to be required.
+
+A substantial, positive correlation, which steadily plateaus above USD
+90,000, is evident when life expectancy is plotted against median
+household income. Together, the LOESS fit (residual SE = 2.33 years) and
+the Pearson correlation of 0.75 suggest that economic improvement in
+lower-income areas may result in significant longevity benefits.
+Extremely wealthy regions, on the other hand, already seem to be close
+to a ceiling. On the other hand, the adult obesity rate exhibits a
+linear, detrimental effect: a 0.68-year drop in life expectancy is
+predicted for every percentage point rise, and the correlation of --0.72
+accounts for more than half of the variation (R2 = 0.52). When obesity
+is re-examined within tertiles of access to exercise opportunities, its
+relationship with longevity steepens in high-access environments (r =
+--0.79, slope = --0.84), suggesting that behavioral choices, rather than
+structural constraints, exacerbate health disparities in environments
+with plentiful facilities.
+
+Provider availability also matters, though more subtly. Counties with
+fewer than 1,000 residents per primary-care physician record a median
+expectancy of 75.9 years, while mid-access bands (2,000--5,000 residents
+per doctor) drop to 74.8--75.2 years before a slight rebound in the
+scarcest group. This pattern suggests that physician density exerts
+incremental benefits only up to a threshold, beyond which contextual
+factors---such as wealth, built environment, or rurality---likely
+dominate.
+
+The geographic context itself is significant. The most extended
+lifespans (median = 78.2 years) are found in jurisdictions with 26--50\%
+rural populations, outliving both highly urban counties (74.8 years) and
+the most rural groups (= 75.5 years). While larger dispersion within
+metropolitan areas (SD = 5.65) indicates a mix of impoverished
+inner-city populations and wealthy suburbs, semi-rural regions tend to
+be more socioeconomically homogeneous and generally healthier. The
+correlation heat-map clarifies potential collinearity. Age-adjusted
+death rate is nearly a mirror image of the outcome itself (r = --0.98);
+therefore, it will be excluded from formal modelling to avoid
+redundancy. Income and obesity correlate at --0.63, a level that may
+inflate variance inflation factors but not so high as to demand outright
+removal; instead, diagnostics will verify tolerable VIF values. Other
+predictors---physician ratio, rurality, and exercise access---display
+only modest intercorrelations (\textbar r\textbar{} \textless{} 0.29),
+indicating that they each convey largely distinct information about
+county environments.
+
+When considered collectively, the exploratory study demonstrates that
+multiple linear regression with life expectancy as the continuous
+response is appropriate. Additionally, it supports a principled
+variable-screening approach that limits the age-adjusted death rate for
+conceptual and statistical reasons, monitors multicollinearity primarily
+between income and obesity, and keeps income, obesity, exercise access,
+rural band, and physician ratio as core predictors. The finished model
+will be well-positioned to explain why some Virginians live noticeably
+longer than others, as it will capture both quantitative gradients and
+categorical contexts.
+
+\subsection{Methods and Analysis}\label{methods-and-analysis}
+
+\subsection{Results}\label{results}
+
+\subsection{Conclusions}\label{conclusions}
+
+\newpage
+
+\subsection{Appendix A: Data
+Dictionary}\label{appendix-a-data-dictionary}
+
+\begin{longtable}[]{@{}ccc@{}}
+\toprule\noalign{}
+Variable Name & Abbreviated Name & Description \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+& & \\
+\end{longtable}
+
+\newpage
+
+\subsection{Appendix B: Data Rows}\label{appendix-b-data-rows}
+
+\newpage
+
+\subsection{Appendix C: Final Model Output and
+Plots}\label{appendix-c-final-model-output-and-plots}
+
+\newpage
+
+\subsection{Appendix D: References}\label{appendix-d-references}
+
+\subsubsection{Background}\label{background}
+
+\subsubsection{Data Sources}\label{data-sources-1}
+
+\subsubsection{Additional Help}\label{additional-help}
+
+\end{document}

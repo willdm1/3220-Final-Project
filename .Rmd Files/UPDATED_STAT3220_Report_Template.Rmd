@@ -16,6 +16,9 @@ setwd("D:/OneDrive - University of Virginia/Will M/Undergraduate Research Course
 ```
 
 ```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## Use this chunk for reading in packages.
+## Use this chunk for reading in the data, combining the data, and any other major data cleaning that is not relevant to show.
+## Remove the ## before all code.
 library(readxl)  
 library(dplyr)   
 library(ggplot2)   
@@ -74,7 +77,6 @@ full_df <- addl_df %>%
   )
 ```
 
-
 \begin{center}
 
 \includegraphics[width=\textwidth]%
@@ -95,12 +97,12 @@ The overarching question guiding this study is:
 Drawing on publicly available data from the County Health Rankings portal, we assembled a dataset in which each row represents a single jurisdiction, and the outcome of interest is the average life expectancy in years.
 
   Three specific research questions are presented to focus the general investigation. First, *is the average life expectancy longer in jurisdictions with greater median household incomes?* This tackles the quantifiable relationship that previous national studies have proposed between longevity and economic prosperity. Second, *is life expectancy lower in counties with the highest tertile of adult obesity rates than in those with the lowest tertile?* This investigates the relationship between mortality risk and a quantifiably modifiable health behavior variable. Third, *is there a difference in mean life expectancy between Virginia's primarily rural and urban jurisdictions?* This question investigates whether geographic context alone confers a longevity advantage or disadvantage by contrasting a qualitative classification of place. 
-
+  
 ## Data Summary
 
 ### Data Sources
 
-  This analysis is based on the 2025 Virginia extract from the *County Health Rankings & Roadmaps program*, a collaborative effort between the University of Wisconsin Population Health Institute and the Robert Wood Johnson Foundation that gathers county-level health indicators nationwide each year. Before harmonizing the series to a single 2025 reference year, the institute gathers each metric directly from approved federal sources, including the Bureau of Labor Statistics, the American Community Survey, and the CDC WONDER database.
+ This analysis is based on the 2025 Virginia extract from the *County Health Rankings & Roadmaps program*, a collaborative effort between the University of Wisconsin Population Health Institute and the Robert Wood Johnson Foundation that gathers county-level health indicators nationwide each year. Before harmonizing the series to a single 2025 reference year, the institute gathers each metric directly from approved federal sources, including the Bureau of Labor Statistics, the American Community Survey, and the CDC WONDER database.
 
   For this study, the population is the complete set of 133 Virginia counties and independent cities. Two companion tables provided by the Rankings, Select Measure Data and Additional Measure Data, contain (i) core health outcomes and (ii) socioeconomic and health-behavior covariates. These tables were combined on each county’s five-digit FIPS code to create a single cross-sectional data frame. A continuous response variable—life expectancy at birth (years)—was retained exactly as reported, ensuring comparability with CDC methodology.
 
@@ -110,12 +112,13 @@ Drawing on publicly available data from the County Health Rankings portal, we as
 
 ### Exploratory Data Analysis
 
-```{r echo = FALSE, warning = FALSE, message = FALSE}
+```{r, echo=FALSE}
+## Use this code  to include the relevant plots from EDA
+## This should NOT be a dump of all of your plots and outputs.
+## Refer to the Rmarkdown guide for sizing information on your plots
 
-# For this section, i was unsure whether I should add in my summary (and detailed) 
-#statistics code I generated or leave it out. If you are wondering where my values 
-#come from in the next section, just know I generated them along with each plot 
-#and saved them in .csv files.
+# This partition is optional, but can be useful for a simple way to resize your plots
+par(mfrow=c(2,3),pin=c(1,1),mar=c(7.1,4.1,3,1))
 
 # 1. Histogram of Life Expectancy Counts (Counties)
 addl_df <- addl_df %>% 
@@ -245,7 +248,11 @@ p_corr <- ggplot(corr_long, aes(Var1, Var2, fill = Pearson_r)) +
 print(p_corr)
 ```
 
-```{r, include=FALSE}
+### EDA Summary
+
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## Use this code chunk can be used to execute any functions or summaries 
+## that will not be included in your output such as correlations or 5 number summaries
 # Stats - Break
 
 stats_hist <- addl_df %>% 
@@ -435,10 +442,8 @@ band_stats <- df_rural %>%
 
 print(p_rural)
 print(band_stats)
+
 ```
-
-### EDA Summary
-
   The response variable, life expectancy at birth, has a mean of 75.15 years, a standard deviation of only 3.89 years, and a bell-shaped distribution that is almost symmetric with a slight skew (–0.04).  The variable fulfills the normality and homoscedasticity assumptions typically required for multiple linear regression, as it spans more than twenty-four years (64.3–88.9); however, the majority of counties cluster firmly between 73 and 78 years. As a result, no transformation seems to be required.
   
   A substantial, positive correlation, which steadily plateaus above USD 90,000, is evident when life expectancy is plotted against median household income. Together, the LOESS fit (residual SE = 2.33 years) and the Pearson correlation of 0.75 suggest that economic improvement in lower-income areas may result in significant longevity benefits. Extremely wealthy regions, on the other hand, already seem to be close to a ceiling. On the other hand, the adult obesity rate exhibits a linear, detrimental effect: a 0.68-year drop in life expectancy is predicted for every percentage point rise, and the correlation of –0.72 accounts for more than half of the variation (R2 = 0.52). When obesity is re-examined within tertiles of access to exercise opportunities, its relationship with longevity steepens in high-access environments (r = –0.79, slope = –0.84), suggesting that behavioral choices, rather than structural constraints, exacerbate health disparities in environments with plentiful facilities.
@@ -446,11 +451,19 @@ print(band_stats)
   Provider availability also matters, though more subtly. Counties with fewer than 1,000 residents per primary-care physician record a median expectancy of 75.9 years, while mid-access bands (2,000–5,000 residents per doctor) drop to 74.8–75.2 years before a slight rebound in the scarcest group. This pattern suggests that physician density exerts incremental benefits only up to a threshold, beyond which contextual factors—such as wealth, built environment, or rurality—likely dominate.
   
   The geographic context itself is significant.  The most extended lifespans (median = 78.2 years) are found in jurisdictions with 26–50% rural populations, outliving both highly urban counties (74.8 years) and the most rural groups (= 75.5 years).  While larger dispersion within metropolitan areas (SD = 5.65) indicates a mix of impoverished inner-city populations and wealthy suburbs, semi-rural regions tend to be more socioeconomically homogeneous and generally healthier.
-The correlation heat-map clarifies potential collinearity. Age-adjusted death rate is nearly a mirror image of the outcome itself (r = –0.98); therefore, it will be excluded from formal modelling to avoid redundancy. Income and obesity correlate at –0.63, a level that may inflate variance inflation factors but not so high as to demand outright removal; instead, diagnostics will verify tolerable VIF values. Other predictors—physician ratio, rurality, and exercise access—display only modest intercorrelations (|r| < 0.29), indicating that they each convey largely distinct information about county environments.
+  
+  The correlation heat-map clarifies potential collinearity. Age-adjusted death rate is nearly a mirror image of the outcome itself (r = –0.98); therefore, it will be excluded from formal modelling to avoid redundancy. Income and obesity correlate at –0.63, a level that may inflate variance inflation factors but not so high as to demand outright removal; instead, diagnostics will verify tolerable VIF values. Other predictors—physician ratio, rurality, and exercise access—display only modest intercorrelations (|r| < 0.29), indicating that they each convey largely distinct information about county environments.
 
   When considered collectively, the exploratory study demonstrates that multiple linear regression with life expectancy as the continuous response is appropriate. Additionally, it supports a principled variable-screening approach that limits the age-adjusted death rate for conceptual and statistical reasons, monitors multicollinearity primarily between income and obesity, and keeps income, obesity, exercise access, rural band, and physician ratio as core predictors. The finished model will be well-positioned to explain why some Virginians live noticeably longer than others, as it will capture both quantitative gradients and categorical contexts.
-
+  
 ## Methods and Analysis
+
+```{r, echo=FALSE, warning=FALSE,results=FALSE}
+## This code chunk can be used to execute any functions or summaries that will not be included in your output
+LifeExp_i = β0 + β1·Income_i + β2·Obesity_i + β3·ExerciseAccess_i
+            + β4·Rural_i + β5·Physicians_i + ε_i ,   ε_i ~ N(0, σ²)
+
+```
 
 ## Results
 
