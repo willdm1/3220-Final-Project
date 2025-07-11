@@ -525,4 +525,141 @@ cat("Stats saved to: ", stats_file_corr, "\n")
 print(p_corr)
 print(head(corr_long, 10))
 ```
+```{r}
+
+## This code chunk can be used to execute any functions or summaries that will not be included in your output
+
+# 1. Ordinary Least Squares (baseline)
+
+model_ols <- lm(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data = full_df
+)
+summary(model_ols)
+
+# 2. Core Diagnostics for OLS
+
+# Multicollinearity
+vif(model_ols)
+
+# Heteroscedasticity
+bptest(model_ols)
+
+# Autoplot gives: 1) residuals vs fitted, 2) QQ, 3) scale-location, 4) Cook’s
+autoplot(model_ols, which = 1:4, ncol = 2)
+
+# 3. Build Weights & Weighted Least Squares
+
+# absolute residuals ~ fitted to model the variance function
+abs_resid <- abs(residuals(model_ols))
+var_fit   <- lm(abs_resid ~ fitted(model_ols))
+w         <- 1 / (predict(var_fit)^2)          # inverse-variance weights
+
+model_wls <- lm(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data    = full_df,
+  weights = w
+)
+summary(model_wls)
+
+# 4. Box–Cox Transformation (optional comparison)
+
+bc_out     <- boxcox(model_ols, plotit = FALSE)
+lambda_hat <- bc_out$x[which.max(bc_out$y)]
+
+full_df <- full_df |>
+  mutate(life_exp_bc = if (abs(lambda_hat) < 1e-4)
+                         log(life_expectancy)
+                       else
+                         (life_expectancy^lambda_hat - 1) / lambda_hat)
+
+model_bc <- lm(
+  life_exp_bc ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data = full_df
+)
+summary(model_bc)
+
+# 5. Compare Competing Models
+
+AIC(model_ols, model_wls, model_bc)
+BIC(model_ols, model_wls, model_bc)
+
+# compact coefficient table
+bind_rows(
+  tidy(model_ols, conf.int = TRUE)  |> mutate(model = "OLS"),
+  tidy(model_wls, conf.int = TRUE)  |> mutate(model = "WLS"),
+  tidy(model_bc , conf.int = TRUE)  |> mutate(model = "Box-Cox")
+) |> select(model, term, estimate, conf.low, conf.high, p.value)
+
+# 6. Additional Diagnostics for Final Choice (assume WLS)
+
+# Residual plots
+autoplot(model_wls, which = 1:4, ncol = 2)
+
+# Normality test
+shapiro.test(residuals(model_wls))
+
+# Influence statistics
+influence_measures(model_wls) |> tidy()
+
+
+# 7.  Hold-Out Validation (70/30 split)
+
+set.seed(3220)
+idx_train <- createDataPartition(full_df$life_expectancy, p = 0.70, list = FALSE)
+
+train_df  <- full_df[idx_train, ]
+test_df   <- full_df[-idx_train, ]
+
+fit_train <- lm(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data    = train_df,
+  weights = w[idx_train]            # reuse weights for training rows
+)
+
+test_df$pred <- predict(fit_train, newdata = test_df)
+rmse_test     <- sqrt(mean((test_df$life_expectancy - test_df$pred)^2))
+rmse_test
+
+# 8. 10-Fold Cross-Validation
+
+set.seed(3220)
+ctrl <- trainControl(method = "cv", number = 10)
+
+cv_mod <- train(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data       = full_df,
+  method     = "lm",
+  weights    = w,
+  trControl  = ctrl
+)
+cv_mod
+
+# 9. Cleanup Objects (optional)
+
+rm(abs_resid, var_fit, bc_out)  # drop temp objs
+
+```
+
+We are hoping to apply the Weighted Least Squares' additional technique.
 

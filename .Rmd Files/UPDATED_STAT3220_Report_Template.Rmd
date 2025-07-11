@@ -10,27 +10,47 @@ header-includes:
 - \onehalfspacing
 ---
 
+---
+output: pdf_document
+---
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, comment=NA, warnings=FALSE,message=FALSE)
-setwd("D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/.Rmd Files")
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	dpi = 300
+)
+library(ggplot2)
+theme_set(theme_minimal(base_size = 9))   # ↓ from default 11
+
+library(ggplot2)
+library(patchwork)
+library(scales)     # dollar_format()
 ```
 
-```{r, echo=FALSE, warning=FALSE,results=FALSE}
+```{r, echo=FALSE, warning=FALSE, results=FALSE, include=FALSE}
 ## Use this chunk for reading in packages.
 ## Use this chunk for reading in the data, combining the data, and any other major data cleaning that is not relevant to show.
 ## Remove the ## before all code.
 library(readxl)  
-library(dplyr)   
-library(ggplot2)   
 library(janitor) 
 library(scales)
 library(tidyr)
 library(reshape)
 library(tibble)
-library(broom)
 library(fs)
 library(e1071)
 library(readr) 
+library(car)       
+library(lmtest)    
+library(MASS)   
+library(nlme)      
+library(caret)   
+library(ggfortify)  
+library(broom)    
+library(performance) 
+library(dplyr)
 
 file_path <- "D:/OneDrive - University of Virginia/Will M/Undergraduate Research Courses-Grants/Summer 2025/Introduction to Regression Analysis (STAT 3220)/Final Project/3220-Final-Project/Data/2025 County Health Rankings Virginia Data - v3.xlsx"
 
@@ -41,11 +61,13 @@ measure_df <- read_excel(file_path, sheet = "Select Measure Data")    %>% clean_
 
 full_df <- addl_df %>% 
   inner_join(
-      measure_df %>% 
-        select(fips,
-               percent_with_access_to_exercise_opportunities,
-               everything()),
-      by = "fips"
+    measure_df %>% 
+      dplyr::select(
+        fips,
+        percent_with_access_to_exercise_opportunities,
+        dplyr::everything()
+      ),
+    by = "fips"
   ) %>% 
   mutate(
       exercise_tertile = ntile(percent_with_access_to_exercise_opportunities, 3) %>% 
@@ -88,51 +110,63 @@ full_df <- addl_df %>%
 
 ## Introduction
 
-  Although life expectancy is often regarded as a concise indicator of a community's overall well-being, notable disparities still exist even within a single state. Virginia's 133 counties and independent cities have an average life expectancy of just over seventy-seven years, according to the 2025 County Health Rankings report, highlighting disparities in the state's progress toward public health objectives (County Health Rankings & Roadmaps, 2025). Three recurrent factors that influence longevity are household economic resources, the burden of chronic diseases (obesity), and the characteristics of local environments (such as rural versus urban areas), according to decades of epidemiological research, including the Centers for Disease Control and Prevention's findings on social determinants of health (Hacker, 2022) and the World Health Organization's analyses of obesity-related mortality (WHO, 2025). Understanding how these factors manifest at the county level in Virginia can guide targeted interventions and equitable allocation of resources.
+Despite the fact that life expectancy is frequently thought of as a succinct measure of a community's general well-being, significant differences still occur even within a single state. The 2025 County Health Rankings report, which highlights differences in the state's progress toward public health goals, found that the average life expectancy in Virginia's 133 counties and independent cities is just over seventy-seven years (County Health Rankings & Roadmaps, 2025). Decades of epidemiological research, such as the Centers for Disease Control and Prevention's findings on social determinants of health (Hacker, 2022) and the World Health Organization's analyses of obesity-related mortality (WHO, 2025), identified three recurring factors that influence longevity: household economic resources, the burden of chronic diseases (obesity), and the characteristics of local environments (such as rural versus urban areas). Knowing how these elements appear in Virginia counties can help direct focused interventions and fair resource distribution.
 
 The overarching question guiding this study is: 
 
 *Which socioeconomic, health-behavior, and environmental factors best explain the variation in 2025 life expectancy across Virginia’s counties and independent cities?*
 
-Drawing on publicly available data from the County Health Rankings portal, we assembled a dataset in which each row represents a single jurisdiction, and the outcome of interest is the average life expectancy in years.
+The average life expectancy in years is the outcome of interest, and we created a dataset using publicly accessible data from the County Health Rankings portal, where each row represents a single jurisdiction.
 
-  Three specific research questions are presented to focus the general investigation. First, *is the average life expectancy longer in jurisdictions with greater median household incomes?* This tackles the quantifiable relationship that previous national studies have proposed between longevity and economic prosperity. Second, *is life expectancy lower in counties with the highest tertile of adult obesity rates than in those with the lowest tertile?* This investigates the relationship between mortality risk and a quantifiably modifiable health behavior variable. Third, *is there a difference in mean life expectancy between Virginia's primarily rural and urban jurisdictions?* This question investigates whether geographic context alone confers a longevity advantage or disadvantage by contrasting a qualitative classification of place. 
+Three specific research questions are presented to focus the general investigation. First, *is the average life expectancy longer in jurisdictions with greater median household incomes?* This tackles the quantifiable relationship that previous national studies have proposed between longevity and economic prosperity. Second, *is life expectancy lower in counties with the highest tertile of adult obesity rates than in those with the lowest tertile?* This investigates the relationship between mortality risk and a quantifiably modifiable health behavior variable. Third, *is there a difference in mean life expectancy between Virginia's primarily rural and urban jurisdictions?* This question investigates whether geographic context alone confers a longevity advantage or disadvantage by contrasting a qualitative classification of place. 
   
 ## Data Summary
 
 ### Data Sources
 
- This analysis is based on the 2025 Virginia extract from the *County Health Rankings & Roadmaps program*, a collaborative effort between the University of Wisconsin Population Health Institute and the Robert Wood Johnson Foundation that gathers county-level health indicators nationwide each year. Before harmonizing the series to a single 2025 reference year, the institute gathers each metric directly from approved federal sources, including the Bureau of Labor Statistics, the American Community Survey, and the CDC WONDER database.
+This analysis is based on the 2025 Virginia excerpt from the *County Health Rankings & Roadmaps program*, which collects county-level health indicators across the country annually through a partnership between the Robert Wood Johnson Foundation and the University of Wisconsin Population Health Institute. The institute collects each metric directly from authorized federal sources, such as the CDC WONDER database, the American Community Survey, and the Bureau of Labor Statistics, before harmonizing the series to a single 2025 reference year.
 
-  For this study, the population is the complete set of 133 Virginia counties and independent cities. Two companion tables provided by the Rankings, Select Measure Data and Additional Measure Data, contain (i) core health outcomes and (ii) socioeconomic and health-behavior covariates. These tables were combined on each county’s five-digit FIPS code to create a single cross-sectional data frame. A continuous response variable—life expectancy at birth (years)—was retained exactly as reported, ensuring comparability with CDC methodology.
+For this study, the population is the complete set of 133 Virginia counties and independent cities. Two companion tables provided by the Rankings, Select Measure Data and Additional Measure Data, contain (i) core health outcomes and (ii) socioeconomic and health-behavior covariates. These tables were combined on each county’s five-digit FIPS code to create a single cross-sectional data frame. A continuous response variable—life expectancy at birth (years)—was retained exactly as reported, ensuring comparability with CDC methodology.
 
-  Several small, logically motivated changes were necessary. The ratio of primary care physicians was provided as a text string, such as "2,210:1." To ensure that lower figures indicate increased provider availability, it was transformed to a straightforward numerical count of residents per physician and then split into 5 bins "<=1k", "1-2k", "2-3k", "3-5k", ">=5k". To draw attention to non-linear gradients in built-environment resources, the percentage of people with access to exercise opportunities was recoded into an ordered three-level factor (Low, Mid, and High). Ultimately, the rural population percentage was divided into four equal-width groups, referred to as rural bands: 0–25%, 26–50%, 51–75%, and 76–100%. This discretization facilitates the understanding of regional differences while maintaining a monotonic ordering. After removing occasional entries with missing outcome values and one jurisdiction without a county name, 132 observations were included in the study sample. 
+Several small, logically motivated changes were necessary. The ratio of primary care physicians was provided as a text string, such as "2,210:1." To ensure that lower figures indicate increased provider availability, it was transformed to a straightforward numerical count of residents per physician. To draw attention to non-linear gradients in built-environment resources, the percentage of people with access to exercise opportunities was recoded into an ordered three-level factor (Low, Mid, and High). Ultimately, the rural population percentage was divided into four equal-width groups, referred to as rural bands: 0–25%, 26–50%, 51–75%, and 76–100%. This discretization facilitates the understanding of regional differences while maintaining a monotonic ordering. After removing entries with missing values and one jurisdiction without a county name, 132 observations were included in the study sample. 
 
-  The County Health Rankings have a high level of credibility, as they are frequently referenced in peer-reviewed health services research and utilize open documentation of data provenance and imputation procedures. However, three cautions are worth mentioning. First, particular data show suppressed numbers for a limited number of counties, which can contribute to the uncertainty. Second, there is no set time for retrieval because several focus areas of data are gathered in different years. Lastly, measurements are obtained from a wide range of reliable sources, each with its own unique data collection techniques, and then compiled into sheets. These restrictions will be reviewed when evaluating model findings; however, they do not compromise the dataset's overall integrity.
+Because the County Health Rankings use open documentation of data provenance and imputation procedures and are regularly cited in peer-reviewed health services research, they are highly credible. Three warnings, though, are essential to note. First, specific data may add to the uncertainty by displaying suppressed numbers for a small number of counties. Second, since multiple focus areas of data are collected in various years, there is no set time for retrieval. Last but not least, measurements are gathered from numerous trustworthy sources, each using a different method for collecting data, and then combined into sheets. The overall integrity of the dataset is unaffected by these limitations, which will be examined when assessing model results.
+
 
 ### Exploratory Data Analysis
 
 ```{r, echo=FALSE}
+# ------------------------------------------------------------------
 ## Use this code  to include the relevant plots from EDA
 ## This should NOT be a dump of all of your plots and outputs.
 ## Refer to the Rmarkdown guide for sizing information on your plots
-
-# This partition is optional, but can be useful for a simple way to resize your plots
-par(mfrow=c(2,3),pin=c(1,1),mar=c(7.1,4.1,3,1))
 
 # 1. Histogram of Life Expectancy Counts (Counties)
 addl_df <- addl_df %>% 
   filter(!is.na(county), county != "NA")    
 
+# Break title into two lines and keep it perfectly centred
+title_2line <- "Distribution of Life Expectancy\nAcross Virginia Counties (2025)"
+
 p_hist <- ggplot(addl_df, aes(x = life_expectancy)) +
   geom_histogram(binwidth = 1,
-                 fill     = "steelblue",
-                 colour   = "white") +
-  labs(title = "Distribution of Life Expectancy Across Virginia Counties (2025)",
-       x     = "Life Expectancy (years)",
-       y     = "Number of Counties") +
-  theme_minimal()
-print(p_hist)
+                 fill   = "steelblue",
+                 colour = "white") +
+  labs(
+    title = title_2line,
+    x     = "Life Expectancy (years)",
+    y     = "Number of Counties"
+  ) +
+  theme_minimal() +
+  theme(
+    # centre the whole title block
+    plot.title = element_text(
+      hjust      = 0.5,        # horizontal centring
+      lineheight = 1.1,        # even spacing between the two lines
+      vjust      = 1,          # nudge upward (optional)
+      margin     = margin(b = 8) # add a little breathing-room below the title
+    )
+  )
 
 # 2. Scatterplot: Life Expectancy vs. Median Income (+ LOESS)
 p_scatter <- ggplot(full_df,
@@ -145,7 +179,6 @@ p_scatter <- ggplot(full_df,
        x = "Median Household Income (USD)",
        y = "Life Expectancy (years)") +
   theme_minimal()
-print(p_scatter)
 
 # 3. Scatterplot: Life Expectancy vs. Primary-Care Physician Ratio
 plot_df <- full_df %>% 
@@ -163,7 +196,6 @@ p_phys <- ggplot(plot_df,
        x = "Population per Primary-Care Physician\n(higher = fewer physicians)",
        y = "Life Expectancy (years)") +
   theme_minimal()
-plot(p_phys)
 
 # 4. Scatterplot: Life Expectancy vs. Adult Obesity (%)
 p_obesity <- ggplot(full_df,
@@ -175,24 +207,36 @@ p_obesity <- ggplot(full_df,
        x = "Adult Obesity (%)",
        y = "Life Expectancy (years)") +
   theme_minimal()
-print(p_obesity)
 
 # 5. Faceted scatter: Life Expectancy ~ Adult Obesity, coloured by Exercise-Access Tertile
+title_2line <- "Life Expectancy vs. Obesity\nby Exercise-Access Tertile"
+
 p_exercise <- full_df %>% 
   filter(!is.na(exercise_tertile)) %>%         
   ggplot(aes(x = percent_adults_with_obesity,
              y = life_expectancy,
              colour = exercise_tertile)) +
   geom_point(size = 2, alpha = 0.8) +
-  scale_colour_brewer(palette = "Dark2",
-                      name = "Exercise Access",
-                      na.translate = FALSE) +      
+  scale_colour_brewer(
+    palette      = "Dark2",
+    name         = "Exercise Access",
+    na.translate = FALSE
+  ) +      
   facet_wrap(~ exercise_tertile, nrow = 1, drop = TRUE) +
-  labs(title = "Life Expectancy vs. Obesity by Exercise-Access Tertile",
-       x = "Adult Obesity (%)",
-       y = "Life Expectancy (years)") +
-  theme_minimal()
-print(p_exercise)
+  labs(
+    title = title_2line,
+    x     = "Adult Obesity (%)",
+    y     = "Life Expectancy (years)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(
+      hjust      = 0.5,          # centre the whole title block
+      lineheight = 1.1,          # comfortable spacing between lines
+      margin     = margin(b = 8) # little gap below title
+    ),
+    legend.position = "bottom"   # keeps legend clear of title/strips (optional)
+  )
 
 # 6. Boxplot: Life Expectancy by Rural
 rural_cols <- c(
@@ -214,18 +258,19 @@ p_rural <- ggplot(df_rural,
        x = "",
        y = "Life Expectancy (years)") +
   theme_minimal()
-print(p_rural)
 
 # 7. Correlation Heat-map of Key Quantitative Predictors
 num_vars <- full_df %>% 
-  select(life_expectancy,
-         median_household_income,
-         percent_adults_with_obesity,
-         primary_care_physicians_ratio,
-         age_adjusted_death_rate,
-         income_ratio,
-         percent_with_access_to_exercise_opportunities) %>% 
-  drop_na()
+  select(
+    life_expectancy,
+    median_household_income,
+    percent_adults_with_obesity,
+    primary_care_physicians_ratio,
+    age_adjusted_death_rate,
+    income_ratio,
+    percent_with_access_to_exercise_opportunities
+  ) %>% 
+  tidyr::drop_na()
 
 corr_mat  <- round(cor(num_vars), 2)
 
@@ -244,8 +289,44 @@ p_corr <- ggplot(corr_long, aes(Var1, Var2, fill = Pearson_r)) +
        x = NULL, y = NULL) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
-print(p_corr)
+
+```{r four-up, echo=FALSE, warning=FALSE, dev='pdf', fig.width=9, fig.height=8, out.width='\\linewidth', fig.keep='last'}
+# ── Six-panel grid · 3 rows × 2 columns ───────────────────────────────
+six_up <- (
+  p_hist     | p_scatter   ) /   # row 1
+  (p_phys     | p_obesity   ) /   # row 2
+  (p_exercise | p_rural     ) +   # row 3
+  plot_annotation(
+    title      = "Key Exploratory Plots",
+    tag_levels = "A",            # tags A.–F.
+    tag_prefix = "",
+    tag_sep    = "."
+  ) &
+  theme(
+    plot.tag        = element_text(face = "bold", size = 20),
+    plot.title      = element_text(size = 13, hjust = 0),
+    legend.position = "bottom"
+  )
+
+six_up   # render the 3 × 2 figure
+```
+
+```{r supp, echo = FALSE, warning = FALSE, dev = 'pdf', fig.width  = 9, fig.height = 4, out.width  = '\\linewidth', fig.keep   = 'last'}
+
+# ── Stand-alone correlation heat-map ──────────────────────────────────
+heat_only <- p_corr +
+  plot_annotation(
+    tag_levels = list("G")       # single tag “G.”
+  ) &
+  theme(
+    plot.tag   = element_text(face = "bold", size = 20),
+    plot.title = element_text(size = 13, hjust = 0)
+  )
+
+heat_only   # render the heat-map
+
 ```
 
 ### EDA Summary
@@ -347,7 +428,6 @@ stats_phys <- plot_df %>%
   ) %>% 
   ungroup()
 
-print(p_phys)
 print(stats_phys)
 
 # Stats - Break
@@ -382,7 +462,6 @@ stats_obesity <- full_df %>%
     lm_r_squared        = summary(lm(life_expectancy ~ percent_adults_with_obesity))$r.squared
   )
 
-print(p_obesity)
 print(stats_obesity)
 
 # Stats - Break
@@ -440,30 +519,218 @@ band_stats <- df_rural %>%
     .groups = "drop"
   )
 
-print(p_rural)
 print(band_stats)
 
 ```
-  The response variable, life expectancy at birth, has a mean of 75.15 years, a standard deviation of only 3.89 years, and a bell-shaped distribution that is almost symmetric with a slight skew (–0.04).  The variable fulfills the normality and homoscedasticity assumptions typically required for multiple linear regression, as it spans more than twenty-four years (64.3–88.9); however, the majority of counties cluster firmly between 73 and 78 years. As a result, no transformation seems to be required.
-  
-  A substantial, positive correlation, which steadily plateaus above USD 90,000, is evident when life expectancy is plotted against median household income. Together, the LOESS fit (residual SE = 2.33 years) and the Pearson correlation of 0.75 suggest that economic improvement in lower-income areas may result in significant longevity benefits. Extremely wealthy regions, on the other hand, already seem to be close to a ceiling. On the other hand, the adult obesity rate exhibits a linear, detrimental effect: a 0.68-year drop in life expectancy is predicted for every percentage point rise, and the correlation of –0.72 accounts for more than half of the variation (R2 = 0.52). When obesity is re-examined within tertiles of access to exercise opportunities, its relationship with longevity steepens in high-access environments (r = –0.79, slope = –0.84), suggesting that behavioral choices, rather than structural constraints, exacerbate health disparities in environments with plentiful facilities.
-  
-  Provider availability also matters, though more subtly. Counties with fewer than 1,000 residents per primary-care physician record a median expectancy of 75.9 years, while mid-access bands (2,000–5,000 residents per doctor) drop to 74.8–75.2 years before a slight rebound in the scarcest group. This pattern suggests that physician density exerts incremental benefits only up to a threshold, beyond which contextual factors—such as wealth, built environment, or rurality—likely dominate.
-  
-  The geographic context itself is significant.  The most extended lifespans (median = 78.2 years) are found in jurisdictions with 26–50% rural populations, outliving both highly urban counties (74.8 years) and the most rural groups (= 75.5 years).  While larger dispersion within metropolitan areas (SD = 5.65) indicates a mix of impoverished inner-city populations and wealthy suburbs, semi-rural regions tend to be more socioeconomically homogeneous and generally healthier.
-  
-  The correlation heat-map clarifies potential collinearity. Age-adjusted death rate is nearly a mirror image of the outcome itself (r = –0.98); therefore, it will be excluded from formal modelling to avoid redundancy. Income and obesity correlate at –0.63, a level that may inflate variance inflation factors but not so high as to demand outright removal; instead, diagnostics will verify tolerable VIF values. Other predictors—physician ratio, rurality, and exercise access—display only modest intercorrelations (|r| < 0.29), indicating that they each convey largely distinct information about county environments.
+The response variable, life expectancy at birth, has a bell-shaped distribution with a slight skew (–0.04), a mean of 75.15 years, and a standard deviation of just 3.89 years.  Since the variable covers more than twenty-four years (64.3–88.9), it satisfies the normality and homoscedasticity assumptions usually needed for multiple linear regression; however, most counties cluster firmly between 73 and 78 years. Therefore, it appears that no transformation is necessary.
 
-  When considered collectively, the exploratory study demonstrates that multiple linear regression with life expectancy as the continuous response is appropriate. Additionally, it supports a principled variable-screening approach that limits the age-adjusted death rate for conceptual and statistical reasons, monitors multicollinearity primarily between income and obesity, and keeps income, obesity, exercise access, rural band, and physician ratio as core predictors. The finished model will be well-positioned to explain why some Virginians live noticeably longer than others, as it will capture both quantitative gradients and categorical contexts.
+A substantial, positive correlation, which steadily plateaus above USD 90,000, is evident when life expectancy is plotted against median household income. Together, the LOESS fit (residual SE = 2.33 years) and the Pearson correlation of 0.75 suggest that economic improvement in lower-income areas may result in significant longevity benefits. Extremely wealthy regions, on the other hand, already seem to be close to a ceiling. On the other hand, the adult obesity rate exhibits a linear, detrimental effect: a 0.68-year drop in life expectancy is predicted for every percentage point rise, and the correlation of –0.72 accounts for more than half of the variation (R2 = 0.52). When obesity is re-examined within tertiles of access to exercise opportunities, its relationship with longevity steepens in high-access environments (r = –0.79, slope = –0.84), suggesting that behavioral choices, rather than structural constraints, exacerbate health disparities in environments with plentiful facilities.
+
+Provider availability also matters, though more subtly. Counties with fewer than 1,000 residents per primary-care physician record a median expectancy of 75.9 years, while mid-access bands (2,000–5,000 residents per doctor) drop to 74.8–75.2 years before a slight rebound in the scarcest group. This pattern suggests that physician density exerts incremental benefits only up to a threshold, beyond which contextual factors—such as wealth, built environment, or rurality—likely dominate.
+The geographic context itself is significant.  The most extended lifespans (median = 78.2 years) are found in jurisdictions with 26–50% rural populations, outliving both highly urban counties (74.8 years) and the most rural groups (= 75.5 years).  While larger dispersion within metropolitan areas (SD = 5.65) indicates a mix of impoverished inner-city populations and wealthy suburbs, semi-rural regions tend to be more socioeconomically homogeneous and generally healthier.
+
+The correlation heat-map clarifies potential collinearity. Age-adjusted death rate is nearly a mirror image of the outcome itself (r = –0.98); therefore, it will be excluded from formal modelling to avoid redundancy. Income and obesity correlate at –0.63, a level that may inflate variance inflation factors but not so high as to demand outright removal; instead, diagnostics will verify tolerable VIF values. Other predictors—physician ratio, rurality, and exercise access—display only modest intercorrelations (|r| </= 0.29), indicating that they each convey largely distinct information about county environments.
+
+All things considered, the exploratory study shows that it is appropriate to use multiple linear regression with life expectancy as the continuous response. It also supports a principled variable-screening approach that maintains income, obesity, exercise access, rural band, and physician ratio as core predictors, monitors multicollinearity primarily between income and obesity, and limits the age-adjusted death rate for conceptual and statistical reasons. Because the final model will account for both quantitative gradients and categorical contexts, it will be in a good position to explain why some Virginians live noticeably longer than others.
+
   
 ## Methods and Analysis
 
 ```{r, echo=FALSE, warning=FALSE,results=FALSE}
-## This code chunk can be used to execute any functions or summaries that will not be included in your output
-LifeExp_i = β0 + β1·Income_i + β2·Obesity_i + β3·ExerciseAccess_i
-            + β4·Rural_i + β5·Physicians_i + ε_i ,   ε_i ~ N(0, σ²)
 
+library(MASS)      
+library(broom)   
+library(dplyr) 
+library(caret)     
+library(tibble)    
+
+
+## This code chunk can be used to execute any functions or summaries that will not be included in your output
+
+# 1. Re-fit OLS with row alignment intact
+model_ols <- lm(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data = full_df,
+  na.action = na.exclude          
+)
+summary(model_ols)
+
+# 2. Build variance model and weights
+abs_resid <- abs(residuals(model_ols))          
+var_fit   <- lm(abs_resid ~ fitted(model_ols), na.action = na.exclude)
+w         <- 1 / (predict(var_fit)^2)         
+
+# 3. Fit WLS using the same NA handling
+model_wls <- lm(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data    = full_df,
+  weights = w,
+  na.action = na.exclude
+)
+summary(model_wls)
+
+# 4. Box–Cox Transformation (optional comparison)
+
+bc_out     <- boxcox(model_ols, plotit = FALSE)
+lambda_hat <- bc_out$x[which.max(bc_out$y)]
+
+full_df <- full_df |>
+  mutate(life_exp_bc = if (abs(lambda_hat) < 1e-4)
+                         log(life_expectancy)
+                       else
+                         (life_expectancy^lambda_hat - 1) / lambda_hat)
+
+model_bc <- lm(
+  life_exp_bc ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data = full_df
+)
+summary(model_bc)
+
+# 5. Compare Competing Models
+
+AIC(model_ols, model_wls, model_bc)
+BIC(model_ols, model_wls, model_bc)
+
+# compact coefficient table
+bind_rows(
+  tidy(model_ols, conf.int = TRUE)  |> mutate(model = "OLS"),
+  tidy(model_wls, conf.int = TRUE)  |> mutate(model = "WLS"),
+  tidy(model_bc , conf.int = TRUE)  |> mutate(model = "Box-Cox")
+) |> select(model, term, estimate, conf.low, conf.high, p.value)
+
+## 6. Additional Diagnostics for Final Choice (WLS)
+
+# 6a. Six standard diagnostic panels 
+png("wls_diagnostics.png",            
+    width  = 2400, height = 3000,     
+    res    = 300)                     
+
+par(mfrow = c(3, 2),                   
+    mar   = c(4.5, 4.5, 2, 1),         
+    oma   = c(0, 0, 2, 0))             
+
+plot(model_wls, which = 1:6)           
+
+dev.off()                              
+
+# 6b. Normality check -
+shapiro.test(residuals(model_wls))
+
+# 6c. Influence statistics 
+infl <- influence.measures(model_wls) 
+
+infl_df <- infl$infmat %>%                   
+  as.data.frame() %>% 
+  tibble::rownames_to_column("obs") %>%     
+  mutate(is_influential = apply(infl$is.inf, 1, any))
+
+head(infl_df)
+
+# 7. Hold-Out Validation (70/30 split) 
+
+set.seed(3220)
+
+full_df_nomiss <- full_df %>% drop_na(life_expectancy)
+
+idx_train <- createDataPartition(full_df_nomiss$life_expectancy,
+                                 p = 0.70, list = FALSE)
+
+train_df <- full_df_nomiss[idx_train, ]
+test_df  <- full_df_nomiss[-idx_train, ]
+
+# 8. 10-Fold Cross-Validation on a complete dataset
+
+set.seed(3220)
+
+# 8a.  Assemble the working data
+
+cv_df <- full_df %>%
+  mutate(w = w) %>%                               
+  drop_na(life_expectancy,
+          median_household_income,
+          percent_adults_with_obesity,
+          percent_with_access_to_exercise_opportunities,
+          rural_band,
+          primary_care_physicians_ratio,
+          w)
+
+# 8b.  Specify 10-fold CV
+
+ctrl <- trainControl(method = "cv", number = 10)
+
+# 8c.  Fit the cross-validated weighted OLS model
+
+cv_mod <- train(
+  life_expectancy ~ median_household_income +
+    percent_adults_with_obesity +
+    percent_with_access_to_exercise_opportunities +
+    rural_band +
+    primary_care_physicians_ratio,
+  data       = cv_df,
+  method     = "lm",
+  weights    = cv_df$w,          
+  trControl  = ctrl,
+  na.action  = na.exclude       
+)
+
+print(cv_mod)
+
+# 9. Cleanup Objects
+
+rm(abs_resid, var_fit, bc_out)  
+
+# 10. Variance-Inflation-Factor table
+if (!requireNamespace("car", quietly = TRUE)) install.packages("car")
+library(car)
+
+get_vif_tbl <- function(mod, label) {
+  v <- car::vif(mod)
+
+  if (is.matrix(v)) {                  
+    tibble(
+      model = label,
+      term  = rownames(v),
+      df    = v[, "Df"],
+      vif   = (v[, "GVIF"]^(1 / (2 * v[, "Df"]))) 
+    )
+  } else {                                 
+    tibble(
+      model = label,
+      term  = names(v),
+      df    = 1L,
+      vif   = as.numeric(v)
+    )
+  }
+}
+
+vif_tbl <- bind_rows(
+  get_vif_tbl(model_ols, "OLS"),
+  get_vif_tbl(model_wls, "WLS")
+)
+
+print(vif_tbl)
 ```
+The multiple-linear-regression concept map's suggested sequence was adhered to by our analytical approach. Using "na.exclude" to preserve row indices, we re-fit an ordinary least-squares (OLS) model on the 126 complete cases after exploratory analysis revealed five conceptually relevant predictors: median household income, adult obesity prevalence, access to exercise opportunities, rurality band (orthogonally coded into three contrasts), and the primary-care-physician ratio. The overall F-test was highly significant (F(7, 118) = 46.7, p < 0.001); income and obesity were strongly significant (|t| > 2.9), access to exercise met the 0.05 threshold (t = -2.02, p = 0.046). In contrast, physician density was only marginal (t = 1.73, p = 0.086). We regressed the absolute OLS residuals on the fitted values to look for possible heteroscedasticity; the positive slope showed that variance rose as the mean increased. Thus, we estimated a weighted least-squares (WLS) model with the precise specification after modeling the residual variance and computing observation-specific weights as the inverse squared fitted values.
+
+The WLS fit enhanced precision and goodness of fit: the adjusted R2 increased from 0.719 to 0.741, and the residual standard error decreased from 1.87 to 1.35 years. Multicollinearity is minimal, according to variance-inflation diagnostics, which showed that all VIFs for the three-df rurality factor were </= 1.81, well below the traditional concern threshold of 10.  As an alternative remedy for non-normality and scale issues, we obtained a data-driven Box–Cox transformation of the response (lambda = 0.13) and refit an unweighted model on the transformed scale. Although the Box–Cox model (lambda = 0.13) preserved the same sign pattern, its fit was markedly worse (AIC = 1608, BIC = 1633) than both the OLS (AIC = 525, BIC = 550) and WLS (AIC = 523, BIC = 548) models, so it was not pursued further.
+
+The WLS specification's model diagnostics were produced. A Shapiro–Wilk test of standardized residuals supports approximate normality (W = 0.985, p = 0.166), the scale-location plot validates variance stabilization, the residual-versus-fitted panel displays no systematic pattern, and the Q–Q plot closely aligns with the 45-degree line. Influence measures reveal eight observations with Cook’s distances exceeding the 4/n threshold (= 0.032). The largest Cook’s distance is 0.62—slightly above the informal 0.5 flag—yet leverage values remain moderate, so no single county dominates the estimates, although two observations warrant closer substantive review (diagnostic plots are provided in the appendix.)
+External validation was impl
+emented in two ways. First, a 70 / 30 hold-out split yielded a root-mean-square prediction error of 1.94 years on the test set, consistent with in-sample residual dispersion. Second, ten-fold cross-validation on the complete, weight-augmented data produced an average RMSE of 1.94 and an average R² of 0.712, indicating stable generalization performance.
+
+Comparative evidence from fit statistics, residual behavior, and validation errors all favored the weighted least-squares specification. Accordingly, the WLS model was adopted as the final model for subsequent interpretation, while acknowledging the presence of a small cluster of moderately influential counties that merit substantive examination rather than statistical exclusion.
 
 ## Results
 
@@ -505,3 +772,5 @@ LifeExp_i = β0 + β1·Income_i + β2·Obesity_i + β3·ExerciseAccess_i
 ### Data Sources
 
 ### Additional Help
+
+
