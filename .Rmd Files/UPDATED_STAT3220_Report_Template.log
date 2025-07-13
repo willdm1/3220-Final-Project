@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.7.12)  12 JUL 2025 06:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.7.12)  12 JUL 2025 13:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -579,7 +579,7 @@ Package pdftex.def Info: D:/OneDrive - University of Virginia/Will M/Undergradua
 <UPDATED_STAT3220_Report_Template_files/figure-latex/four-up-1.pdf, id=21, 640.3925pt x 622.325pt>
 File: UPDATED_STAT3220_Report_Template_files/figure-latex/four-up-1.pdf Graphic file (type pdf)
 <use UPDATED_STAT3220_Report_Template_files/figure-latex/four-up-1.pdf>
-Package pdftex.def Info: UPDATED_STAT3220_Report_Template_files/figure-latex/four-up-1.pdf  used on input line 223.
+Package pdftex.def Info: UPDATED_STAT3220_Report_Template_files/figure-latex/four-up-1.pdf  used on input line 225.
 (pdftex.def)             Requested size: 469.75502pt x 456.50601pt.
 
 
@@ -587,27 +587,27 @@ Package pdftex.def Info: UPDATED_STAT3220_Report_Template_files/figure-latex/fou
 <UPDATED_STAT3220_Report_Template_files/figure-latex/supp-1.pdf, id=28, 625.33624pt x 195.73125pt>
 File: UPDATED_STAT3220_Report_Template_files/figure-latex/supp-1.pdf Graphic file (type pdf)
 <use UPDATED_STAT3220_Report_Template_files/figure-latex/supp-1.pdf>
-Package pdftex.def Info: UPDATED_STAT3220_Report_Template_files/figure-latex/supp-1.pdf  used on input line 225.
+Package pdftex.def Info: UPDATED_STAT3220_Report_Template_files/figure-latex/supp-1.pdf  used on input line 227.
 (pdftex.def)             Requested size: 469.75502pt x 147.03699pt.
 
 
 [4 <./UPDATED_STAT3220_Report_Template_files/figure-latex/four-up-1.pdf> <./UPDATED_STAT3220_Report_Template_files/figure-latex/supp-1.pdf>]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 246.
+(Font)              <12> on input line 252.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 246.
+(Font)              <8> on input line 252.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 246.
+(Font)              <6> on input line 252.
 
 
 [5{c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}]
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 338.
+
+[6{c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 354.
 (c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-
-[6{c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
-Overfull \hbox (14.01277pt too wide) detected at line 363
+Overfull \hbox (14.01277pt too wide) detected at line 381
 [][] \OT1/lmr/m/n/12 ([]) = 88\OML/lmm/m/it/12 :\OT1/lmr/m/n/12 157 + 0\OML/lmm/m/it/12 :\OT1/lmr/m/n/12 00006 \OMS/lmsy/m/n/12 ^^A [][] ^^@ \OT1/lmr/m/n/12 0\OML/lmm/m/it/12 :\OT1/lmr/m/n/12 408 \OMS/lmsy/m/n/12 ^^A [][] ^^@ \OT1/lmr/m/n/12 0\OML/lmm/m/it/12 :\OT1/lmr/m/n/12 02679 \OMS/lmsy/m/n/12 ^^A [][] ^^@ \OT1/lmr/m/n/12 0\OML/lmm/m/it/12 :\OT1/lmr/m/n/12 4281 \OMS/lmsy/m/n/12 ^^A [][]
  []
 
@@ -618,94 +618,94 @@ Overfull \hbox (14.01277pt too wide) detected at line 363
 [8]
 
 [9]
-Overfull \hbox (6.25615pt too wide) in paragraph at lines 490--490
+Overfull \hbox (6.25615pt too wide) in paragraph at lines 508--508
  []|\T1/lmr/m/n/12 percent_adults_with_obesity| 
  []
 
 
-Overfull \hbox (28.1828pt too wide) in paragraph at lines 493--493
+Overfull \hbox (28.1828pt too wide) in paragraph at lines 511--511
  []|\T1/lmr/m/n/12 percent_with_access_to_exercise| 
  []
 
 
-Overfull \hbox (16.04831pt too wide) in paragraph at lines 499--499
+Overfull \hbox (16.04831pt too wide) in paragraph at lines 517--517
  []|\T1/lmr/m/n/12 primary_care_physicians_ratio| 
  []
 
 
-LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblright invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblright invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textendash invalid in math mode on input line 504.
+LaTeX Warning: Command \textendash invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblright invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblright invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textendash invalid in math mode on input line 504.
+LaTeX Warning: Command \textendash invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblright invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblright invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textendash invalid in math mode on input line 504.
+LaTeX Warning: Command \textendash invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblright invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblright invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblleft invalid in math mode on input line 522.
 
 
-LaTeX Warning: Command \textquotedblright invalid in math mode on input line 504.
+LaTeX Warning: Command \textquotedblright invalid in math mode on input line 522.
 
 
-Overfull \hbox (4.95099pt too wide) in paragraph at lines 502--506
+Overfull \hbox (4.95099pt too wide) in paragraph at lines 520--524
  \T1/lmr/m/n/12 mary_care_physicians_ratio: 
  []
 
 [10]
 
 [11]
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 521.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 539.
 (c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 
 [12]
-<wls_diagnostics.png, id=107, 722.7pt x 578.16pt>
+<wls_diagnostics.png, id=108, 722.7pt x 578.16pt>
 File: wls_diagnostics.png Graphic file (type png)
 <use wls_diagnostics.png>
-Package pdftex.def Info: wls_diagnostics.png  used on input line 599.
+Package pdftex.def Info: wls_diagnostics.png  used on input line 617.
 (pdftex.def)             Requested size: 469.75502pt x 375.80836pt.
 
 
 [13]
 
 [14 <./wls_diagnostics.png>]
-Overfull \hbox (4.38617pt too wide) in paragraph at lines 622--624
-\T1/lmr/m/it/12 Virginia\T1/lmr/m/n/12 . (2025). County Health Rank-ings & Roadmaps. [][]$https : / / www . countyhealthrankings .
+Overfull \hbox (4.38617pt too wide) in paragraph at lines 649--651
+[]\T1/lmr/m/it/12 Virginia\T1/lmr/m/n/12 . (2025). County Health Rank-ings & Roadmaps. [][]$https : / / www . countyhealthrankings .
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 622--624
+Underfull \hbox (badness 10000) in paragraph at lines 649--651
 \T1/lmr/m/n/12 org / health -[] data / virginia ? year = 2025 & measure = Population + Health + and + Well -[] being &
  []
 
 
-Underfull \hbox (badness 1194) in paragraph at lines 643--646
+Underfull \hbox (badness 1194) in paragraph at lines 670--673
 []\T1/lmr/m/n/12 Pedersen, T. L. (2025). \T1/lmr/m/it/12 Thomasp85/patchwork \T1/lmr/m/n/12 [R]. [][]$https : / / github . com / thomasp85 /
  []
 
@@ -723,18 +723,18 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 13577 strings out of 469797
- 214968 string characters out of 5480962
+ 13579 strings out of 469797
+ 214993 string characters out of 5480962
  654279 words of memory out of 5000000
- 41663 multiletter control sequences out of 15000+600000
- 678246 words of font info for 84 fonts, out of 8000000 for 9000
+ 41664 multiletter control sequences out of 15000+600000
+ 678622 words of font info for 85 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  89i,10n,93p,587b,593s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi12.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi6.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri12.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><c:/Users/willm/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt12.pfb>
-Output written on UPDATED_STAT3220_Report_Template.pdf (16 pages, 492037 bytes).
+Output written on UPDATED_STAT3220_Report_Template.pdf (16 pages, 499830 bytes).
 PDF statistics:
- 265 PDF objects out of 1000 (max. 8388607)
- 211 compressed objects within 3 object streams
+ 271 PDF objects out of 1000 (max. 8388607)
+ 216 compressed objects within 3 object streams
  36 named destinations out of 1000 (max. 500000)
  141 words of extra memory for PDF output out of 10000 (max. 10000000)
 
